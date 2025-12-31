@@ -12,7 +12,7 @@ st.set_page_config(page_title="Tomato Disease Classifier", page_icon="🍅", lay
 st.sidebar.title("⚙️ الإعدادات")
 st.sidebar.info("تطبيق تصنيف أمراض الطماطم باستخدام الذكاء الاصطناعي")
 
-MODEL_URL = "https://drive.google.com/file/d/1o3jIZlNNkp--vZ0ZTg4zBG17ni9Nahx-/view?usp=sharing"  # ضع ID ملفك هنا
+MODEL_URL = "https://drive.google.com/file/d/1b862FRoAlyzbz2DjpI3XeDLkeiRl_HqH/view?usp=sharing"  # ضع ID ملفك هنا
 IMAGE_SIZE = (256, 256)
 
 CLASS_NAMES = [
