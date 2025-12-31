@@ -5,8 +5,6 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 import random
-import plotly.graph_objects as go
-import plotly.express as px
 from datetime import datetime
 
 # ===== إعدادات الصفحة =====
@@ -88,15 +86,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ===== الرأس الرئيسي =====
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    st.markdown("""
-    <div class="main-header">
-        <h1 style="margin:0">🍅 Tomato AI</h1>
-        <h3 style="margin:0">نظام الذكاء الاصطناعي لتصنيف أمراض الطماطم</h3>
-        <p style="opacity:0.8">دقة تصل إلى 98% في الكشف المبكر عن الأمراض</p>
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown("""
+<div class="main-header">
+    <h1 style="margin:0">🍅 Tomato AI</h1>
+    <h3 style="margin:0">نظام الذكاء الاصطناعي لتصنيف أمراض الطماطم</h3>
+    <p style="opacity:0.8">دقة تصل إلى 98% في الكشف المبكر عن الأمراض</p>
+</div>
+""", unsafe_allow_html=True)
 
 # ===== الشريط الجانبي =====
 with st.sidebar:
@@ -209,12 +205,14 @@ with tab1:
                     st.balloons()
                     st.success("✅ اكتمل التحليل بنجاح!")
                     
-                    # الانتقال للتبويب التالي
-                    st.switch_page("?tab=📊%20لوحة%20النتائج")
+                    # تخزين حالة التحليل في session state
+                    st.session_state['analysis_complete'] = True
+                    st.session_state['uploaded_file'] = uploaded_file
 
 # تبويب 2: لوحة النتائج
 with tab2:
-    if uploaded_file is not None:
+    # التحقق مما إذا كان التحليل مكتملاً
+    if st.session_state.get('analysis_complete', False):
         st.markdown("## 📊 نتائج التحليل")
         
         # نتيجة رئيسية
@@ -257,25 +255,14 @@ with tab2:
                 {"name": "Spider Mites", "ar_name": "العناكب", "confidence": 0.1, "risk": "منخفضة"},
             ]
             
-            # إنشاء رسم بياني
-            fig = px.bar(
-                diseases,
-                x='ar_name',
-                y='confidence',
-                color='confidence',
-                color_continuous_scale='Greens',
-                labels={'ar_name': 'المرض', 'confidence': 'نسبة الثقة %'},
-                height=400
-            )
+            # إنشاء DataFrame للرسم البياني
+            chart_data = pd.DataFrame({
+                'المرض': [d['ar_name'] for d in diseases],
+                'نسبة الثقة %': [d['confidence'] for d in diseases]
+            })
             
-            fig.update_layout(
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                font=dict(size=12),
-                xaxis_tickangle=-45
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
+            # رسم بياني باستخدام Streamlit المدمج
+            st.bar_chart(chart_data.set_index('المرض'))
         
         with col_table:
             st.markdown("### 📋 جميع النتائج")
@@ -284,15 +271,14 @@ with tab2:
             results_df = results_df.sort_values('confidence', ascending=False)
             
             # تنسيق الجدول
-            styled_df = results_df.style.format({'confidence': '{:.1f}%'})\
-                .background_gradient(subset=['confidence'], cmap='Greens')\
-                .apply(lambda x: ['color: green' if v == 'سليم' else '' for v in x], subset=['ar_name'])
-            
             st.dataframe(
-                styled_df[['ar_name', 'confidence', 'risk']],
+                results_df[['ar_name', 'confidence', 'risk']],
                 column_config={
                     "ar_name": "المرض",
-                    "confidence": "الثقة",
+                    "confidence": st.column_config.NumberColumn(
+                        "الثقة",
+                        format="%.1f%%"
+                    ),
                     "risk": "خطورة"
                 },
                 use_container_width=True,
@@ -350,9 +336,10 @@ with tab2:
             )
         
         with col_dl2:
+            csv = results_df.to_csv(index=False, encoding='utf-8-sig')
             st.download_button(
                 label="📊 حفظ كـ Excel",
-                data=results_df.to_csv(index=False),
+                data=csv,
                 file_name=f"نتائج_تحليل_{datetime.now().strftime('%Y%m%d')}.csv",
                 mime="text/csv"
             )
@@ -360,6 +347,8 @@ with tab2:
         with col_dl3:
             if st.button("🖼️ حفظ الصورة مع النتائج"):
                 st.success("سيتم حفظ الصورة مع النتائج في جهازك")
+    else:
+        st.info("📝 يرجى تحميل صورة وتحليلها أولاً في تبويب 'تحليل الصور'")
 
 # تبويب 3: مكتبة الأمراض
 with tab3:
@@ -444,7 +433,7 @@ with tab4:
     col_about1, col_about2 = st.columns([2, 1])
     
     with col_about1:
-        st.markdown("## ℹ️ عن Tomato Disease Detection ")
+        st.markdown("## ℹ️ عن Tomato AI")
         st.markdown("""
         ### 🎯 رؤيتنا
         نسعى لتطوير حلول ذكية للزراعة المستدامة باستخدام أحدث تقنيات الذكاء الاصطناعي.
@@ -465,7 +454,7 @@ with tab4:
         ### 📞 الدعم الفني
         للاستفسارات والدعم الفني:
         - البريد الإلكتروني: asmaaali2612@gmail.com
-        - الهاتف:+20109945844
+        - الهاتف:+201099458448
         - ساعات العمل: 8 صباحاً - 5 مساءً
         """)
     
@@ -502,31 +491,17 @@ with tab4:
 st.markdown("---")
 footer_cols = st.columns(3)
 with footer_cols[0]:
-    st.markdown("**🍅 Tomato Disease Detection**")
+    st.markdown("**🍅 Tomato AI**")
     st.markdown("تصنيف أمراض الطماطم بالذكاء الاصطناعي")
 with footer_cols[1]:
     st.markdown("**📅 الإصدار 2.0**")
     st.markdown(f"آخر تحديث: {datetime.now().strftime('%Y-%m-%d')}")
 with footer_cols[2]:
     st.markdown("**🌐 جميع الحقوق محفوظة**")
-    st.markdown("© 2025 فريق Tomato Disease Detection")
+    st.markdown("© 2025 فريق Tomato AI")
 
-# ===== مؤثرات إضافية =====
-if uploaded_file and analyze_clicked:
-    st.markdown("""
-    <script>
-    // مؤثرات بسيطة بعد التحليل
-    setTimeout(function() {
-        const confetti = document.createElement('div');
-        confetti.innerHTML = '🎉';
-        confetti.style.position = 'fixed';
-        confetti.style.top = '20px';
-        confetti.style.right = '20px';
-        confetti.style.fontSize = '50px';
-        confetti.style.zIndex = '9999';
-        document.body.appendChild(confetti);
-        
-        setTimeout(() => confetti.remove(), 3000);
-    }, 1000);
-    </script>
-    """, unsafe_allow_html=True)
+# ===== تهيئة session state =====
+if 'analysis_complete' not in st.session_state:
+    st.session_state['analysis_complete'] = False
+if 'uploaded_file' not in st.session_state:
+    st.session_state['uploaded_file'] = None
