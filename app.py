@@ -5,8 +5,8 @@ from PIL import Image
 import os
 
 # تأكد من وجود المودل
-if not os.path.exists('last.h5'):
-    st.error("Model file 'last.h5' not found!")
+if not os.path.exists('esra.h5'):
+    st.error("Model file 'esra.h5' not found!")
     st.stop()
 
 # تحميل المودل
