@@ -4,28 +4,28 @@ import numpy as np
 from PIL import Image
 import os
 
-# =====================================
+# =====================================================
 # Page Configuration
-# =====================================
+# =====================================================
 st.set_page_config(
     page_title="Tomato Disease Detection",
     page_icon="🍅",
     layout="centered"
 )
 
-# =====================================
-# Custom CSS for Better UI
-# =====================================
+# =====================================================
+# Custom Styling
+# =====================================================
 st.markdown("""
 <style>
 .main {
-    background-color: #f9fafb;
+    background-color: #f7fafc;
 }
 .title {
     text-align: center;
-    font-size: 40px;
+    font-size: 42px;
     font-weight: bold;
-    color: #2c7a7b;
+    color: #22543d;
 }
 .subtitle {
     text-align: center;
@@ -36,58 +36,54 @@ st.markdown("""
 .card {
     background-color: white;
     padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
-    margin-bottom: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
 }
 .result {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: bold;
-    color: #22543d;
+    color: #2f855a;
 }
 .confidence {
     font-size: 18px;
-    color: #2f855a;
+    color: #276749;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# =====================================
-# Load CNN Model (SAFE WAY)
-# =====================================
+# =====================================================
+# Load Model (SAFE & FINAL)
+# =====================================================
 @st.cache_resource
 def load_cnn_model():
-    model_path = "esra.h5"   # ⭐ اسم الموديل الصحيح
+    model_path = "esra.h5"
 
     if not os.path.exists(model_path):
-        st.error("❌ Model file (esra.h5) not found. Please upload it to the project folder.")
+        st.error("❌ Model file (esra.h5) not found in project folder.")
         st.stop()
 
-    try:
-        model = tf.keras.models.load_model(
-            model_path,
-            compile=False   # ⭐ حل مشكلة InputLayer / batch_shape
-        )
-        return model
-    except Exception as e:
-        st.error(f"❌ Error loading model: {e}")
-        st.stop()
+    model = tf.keras.models.load_model(
+        model_path,
+        compile=False   # ⭐ حل نهائي لمشكلة InputLayer
+    )
+    return model
 
 
 model = load_cnn_model()
 
-# =====================================
+# =====================================================
 # Header
-# =====================================
+# =====================================================
 st.markdown('<div class="title">🍅 Tomato Disease Detection</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="subtitle">CNN-based classification of tomato leaf diseases</div>',
     unsafe_allow_html=True
 )
 
-# =====================================
-# Class Names (عدليهم لو مختلفين)
-# =====================================
+# =====================================================
+# Class Labels (عدّليها لو مختلفة)
+# =====================================================
 class_names = [
     "Bacterial Spot",
     "Early Blight",
@@ -101,18 +97,18 @@ class_names = [
     "Healthy"
 ]
 
-# =====================================
+# =====================================================
 # Image Preprocessing
-# =====================================
+# =====================================================
 def preprocess_image(image):
     image = image.resize((256, 256))
     image = np.array(image) / 255.0
     image = np.expand_dims(image, axis=0)
     return image
 
-# =====================================
+# =====================================================
 # Upload Section
-# =====================================
+# =====================================================
 st.markdown('<div class="card">', unsafe_allow_html=True)
 uploaded_file = st.file_uploader(
     "📤 Upload a tomato leaf image",
@@ -120,9 +116,9 @@ uploaded_file = st.file_uploader(
 )
 st.markdown('</div>', unsafe_allow_html=True)
 
-# =====================================
+# =====================================================
 # Prediction Section
-# =====================================
+# =====================================================
 if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
 
@@ -131,15 +127,15 @@ if uploaded_file is not None:
 
     if st.button("🔍 Predict Disease"):
         with st.spinner("Analyzing image..."):
-            processed_image = preprocess_image(image)
-            predictions = model.predict(processed_image)
+            img = preprocess_image(image)
+            preds = model.predict(img)
 
-            class_index = np.argmax(predictions)
-            confidence = np.max(predictions) * 100
+            idx = np.argmax(preds)
+            confidence = np.max(preds) * 100
 
-        st.markdown('<hr>', unsafe_allow_html=True)
+        st.markdown("<hr>", unsafe_allow_html=True)
         st.markdown(
-            f'<div class="result">🧪 Disease: {class_names[class_index]}</div>',
+            f'<div class="result">🧪 Disease: {class_names[idx]}</div>',
             unsafe_allow_html=True
         )
         st.markdown(
@@ -149,13 +145,12 @@ if uploaded_file is not None:
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-# =====================================
+# =====================================================
 # Footer
-# =====================================
+# =====================================================
 st.markdown("---")
 st.markdown(
     "🎓 **Graduation Project – Tomato Disease Detection using CNN**  \n"
-    "Developed with TensorFlow & Streamlit"
+    "Developed using TensorFlow & Streamlit"
 )
-
 st.caption(f"TensorFlow version: {tf.__version__}")
