@@ -87,7 +87,7 @@ if uploaded_file:
     st.image(image, caption="Uploaded Image", use_container_width=True)
 
     # Preprocess
-    img = image.resize((224, 224))
+    img = image.resize((256, 256))
     img_array = np.array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
 
