@@ -57,7 +57,7 @@ st.markdown("""
 # =====================================================
 @st.cache_resource
 def load_cnn_model():
-    model_path = "esra.h5"
+    model_path = "esra_fixed.h5"
 
     if not os.path.exists(model_path):
         st.error("❌ Model file (esra.h5) not found in project folder.")
