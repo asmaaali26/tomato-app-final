@@ -1,8 +1,3 @@
 __pycache__/
-*.pyc
-venv/
-env/
-*.h5
-*.pkl
+.env
 .DS_Store
-.ipynb_checkpoints/
